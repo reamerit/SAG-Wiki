@@ -980,9 +980,11 @@ impl Store {
         if !path.is_dir() {
             bail!("请选择文件夹")
         };
-        let name = path
-            .file_name()
-            .unwrap_or(path.as_os_str())
+        let value = path_text(&path)?;
+        let base = path.file_name().unwrap_or(path.as_os_str());
+        let name = if base.as_encoded_bytes() == crate::text::PROJECT_DIRECTORY.as_bytes() {
+            path.parent().and_then(|parent| parent.file_name()).unwrap_or(base)
+        } else { base }
             .to_string_lossy();
         tx.execute(
             "INSERT INTO roots(path,name) VALUES(?,?)",
@@ -1067,7 +1069,7 @@ impl Store {
         for item in fs::read_dir(path)? {
             let item = item?;
             let name = item.file_name().to_string_lossy().to_string();
-            if !show_hidden && name.starts_with('.') {
+            if !show_hidden && name.starts_with('.') && name != crate::text::PROJECT_DIRECTORY {
                 continue;
             };
             let ty = item.file_type()?;
@@ -2172,7 +2174,8 @@ impl Store {
                 && !excluded.iter().any(|removed| path.starts_with(removed))
                 && (entry.depth() == 0 || !(entry.file_type().is_some_and(|ty| ty.is_dir())
                     && entry.file_name().as_encoded_bytes().starts_with(b".")
-                    && entry.file_name() != crate::docling::OUTPUT_DIRECTORY)
+                    && entry.file_name() != crate::docling::OUTPUT_DIRECTORY
+                    && entry.file_name() != crate::text::PROJECT_DIRECTORY)
                     && !names.iter().any(|name| entry.file_name() == name.as_str()))
         });
         for entry in builder.build() {

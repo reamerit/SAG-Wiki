@@ -306,11 +306,15 @@ pub fn is_indexable(path: &std::path::Path, types: &crate::types::FileTypes) -> 
         None => false,
     }
 }
+/// Knowledge folder an editor/agent integration creates next to a project's sources.
+/// It starts with a dot but is deliberately indexable, unlike other hidden directories.
+pub const PROJECT_DIRECTORY: &str = ".sag-wiki";
 pub fn in_hidden_directory(root: &std::path::Path, path: &std::path::Path, directory: bool) -> bool {
     path.strip_prefix(root).is_ok_and(|relative| {
         let directories = if directory { Some(relative) } else { relative.parent() };
         directories.into_iter().flat_map(std::path::Path::components)
-            .any(|part| part.as_os_str().as_encoded_bytes().starts_with(b"."))
+            .any(|part| part.as_os_str().as_encoded_bytes().starts_with(b".")
+                && part.as_os_str() != PROJECT_DIRECTORY)
     })
 }
 #[derive(Clone, Debug, PartialEq)]

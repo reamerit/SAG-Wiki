@@ -295,7 +295,7 @@ impl CliService {
             for component in path.strip_prefix(&root.path)?.components() {
                 ancestor.push(component);
                 let name = component.as_os_str();
-                if name.as_encoded_bytes().starts_with(b".")
+                if (name.as_encoded_bytes().starts_with(b".") && name != crate::text::PROJECT_DIRECTORY)
                     || settings.excluded.iter().any(|item| name == item.as_str())
                     || crate::ignore_rules::is_ignored(&mut matcher, &ancestor, true)? {
                     excluded = true;

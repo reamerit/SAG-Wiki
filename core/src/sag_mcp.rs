@@ -213,6 +213,7 @@ impl SagTools {
                 let skipped = excluded.iter().any(|path| entry.path().starts_with(path))
                     || entry.depth() > 0 && (entry.file_type().is_symlink()
                         || !self.settings.show_hidden && entry.file_name().to_string_lossy().starts_with('.')
+                            && entry.file_name() != crate::text::PROJECT_DIRECTORY
                         || entry.file_type().is_dir() && self.settings.excluded.iter().any(|name| entry.file_name() == name.as_str()))
                     || ignore_rules::is_ignored(&mut ignore, entry.path(), entry.file_type().is_dir())?;
                 if skipped {
